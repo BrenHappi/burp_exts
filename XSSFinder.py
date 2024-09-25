@@ -35,6 +35,9 @@ class BurpExtender(IBurpExtender, IScannerCheck, ITab):
 
     def getUiComponent(self):
         return self.config_panel
+    
+    def doActiveScan(self, baseRequestResponse, insertionPoint):
+        return None
 
     def doPassiveScan(self, baseRequestResponse):
         issues = []
@@ -65,9 +68,12 @@ class BurpExtender(IBurpExtender, IScannerCheck, ITab):
         params = analyzedRequest.getParameters()
         for param in params:
             if param.getType() == IParameter.PARAM_COOKIE:  # ignore XSS in cookie for now
-                break
+                continue
             elif param.getName() in self.exclusions:
-                break
+                continue
+            elif param.getType() not in [IParameter.PARAM_URL, IParameter.PARAM_BODY]:
+                # Ignorer les types de paramètres non supportés
+                continue
             # Step 4: try payloads
             for payload, confidence in self.get_xss_payloads().items():
                 new_req = self._helpers.updateParameter(request, self._helpers.buildParameter(
