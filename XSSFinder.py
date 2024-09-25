@@ -67,12 +67,9 @@ class BurpExtender(IBurpExtender, IScannerCheck, ITab):
         # Step 3: Check if any parameter is reflected in the response
         params = analyzedRequest.getParameters()
         for param in params:
-            if param.getType() == IParameter.PARAM_COOKIE:  # ignore XSS in cookie for now
-                continue
-            elif param.getName() in self.exclusions:
+            if param.getName() in self.exclusions:
                 continue
             elif param.getType() not in [IParameter.PARAM_URL, IParameter.PARAM_BODY]:
-                # Ignorer les types de paramètres non supportés
                 continue
             # Step 4: try payloads
             for payload, confidence in self.get_xss_payloads().items():
