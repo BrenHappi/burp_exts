@@ -51,17 +51,19 @@ class BurpExtender(IBurpExtender, IScannerCheck, ITab):
         if analyzedResponse.getStatusCode() in [301, 302]:
             return issues
 
-        headers = analyzedResponse.getHeaders()
-
         # Step 1 & 2: Check Content-Type
+        headers = analyzedResponse.getHeaders()
         content_type_allowed = True
+        forbidden_content_type_list = ["application/x-javascript", "application/json"]
         for header in headers:
             if header.lower().startswith("content-type:"):
-                if "application/x-javascript" in header or "application/json" in header:
+                content_type_value = header.split(":", 1)[1].strip().lower()  # Normalize
+                if any(forbidden_type in content_type_value for forbidden_type in forbidden_content_type_list):
                     content_type_allowed = False
                 break
 
         if not content_type_allowed:
+            # self._stdout.println("Content-type not allowed")
             return issues
 
         # Step 3: Check if any parameter is reflected in the response
